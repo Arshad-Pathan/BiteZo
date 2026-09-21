@@ -1,0 +1,10 @@
+# python3.12.3
+Django
+django-bootstrap5
+django-filter
+django-crispy-forms
+crispy-bootstrap5
+django-import-export
+django-tinymce
+djangorestframework
+pillow

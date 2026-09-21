@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm border-0 form-card">
+    <div class="card-body p-4">
+        <h3 class="mb-4">
+            {% if product %}
+                Edit Food
+            {% else %}
+                Add Food
+            {% endif %}
+        </h3>
+        <form method="POST"
+              enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">
+                    Restaurant
+                </label>
+                <input type="text"
+                       name="restaurant"
+                       class="form-control"
+                       value="{{ product.restaurant|default:'' }}"
+                       required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">
+                    Food Name
+                </label>
+                <input type="text"
+                       name="name"
+                       class="form-control"
+                       value="{{ product.name|default:'' }}"
+                       required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">
+                    Description
+                </label>
+                <textarea name="description"
+                          class="form-control"
+                          rows="4">{{ product.description|default:'' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">
+                    Price
+                </label>
+                <input type="number"
+                       step="0.01"
+                       name="price"
+                       class="form-control"
+                       value="{{ product.price|default:'' }}"
+                       required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">
+                    Food Image
+                </label>
+                <input type="file"
+                       name="image"
+                       class="form-control">
+            </div>
+            {% if product %}
+            <div class="form-check mb-3">
+                <input type="checkbox"
+                       name="is_available"
+                       class="form-check-input"
+                       {% if product.is_available %}
+                       checked
+                       {% endif %}>
+                <label class="form-check-label">
+                    Available
+                </label>
+            </div>
+            {% endif %}
+            <button class="btn btn-danger">
+                Save Food
+            </button>
+            <a href="{% url 'product_list' %}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

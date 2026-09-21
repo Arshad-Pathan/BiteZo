@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+JHHAPETO
+{% endblock %}
+{% block content %}
+
+<!-- =====================================================
+     HERO / SEARCH SECTION
+===================================================== -->
+<section class="home-hero">
+
+<div class="hero-content text-center">
+    <h1 class="hero-title">
+        Delicious food,
+        <span>delivered to you on time.</span>
+    </h1>
+    <p class="hero-subtitle">
+        Discover your favourite food and order it in just a few clicks.
+    </p>
+    <!-- Search -->
+    <div class="home-search mx-auto">
+        <i class="bi bi-search"></i>
+        <input
+            type="text"
+            id="productSearch"
+            class="form-control"
+            placeholder="Search for pizza, burger, biryani..."
+        >
+    </div>
+</div>
+
+</section>
+<!-- =====================================================
+     FOOD CATEGORIES
+===================================================== -->
+<section class="home-section">
+
+<div class="section-heading">
+    <div class="">
+        <h2>
+            Explore Categories
+        </h2>
+        <p>
+            What are you craving today?
+        </p>
+    </div>
+</div>
+<div class="row g-3">
+    <!-- Pizza -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food1.jpeg' %}"
+                    alt="Pizzas"
+                >
+            </div>
+            <h6>
+                Pizzas
+            </h6>
+        </div>
+    </div>
+    <!-- Burgers -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food2.jpeg' %}"
+                    alt="Burgers"
+                >
+            </div>
+            <h6>
+                Burgers
+            </h6>
+        </div>
+    </div>
+    <!-- Biryani -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food3.jpeg' %}"
+                    alt="Biryani"
+                >
+            </div>
+            <h6>
+                Biryanis
+            </h6>
+        </div>
+    </div>
+    <!-- Chinese -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food4.jpeg' %}" 
+                    alt="Chinese Food"
+                >
+            </div>
+            <h6>
+                Chinese
+            </h6>
+        </div>
+    </div>
+    <!-- Mexican -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food5.jpeg' %}" 
+                    alt="Mexican Food"
+                >
+            </div>
+            <h6>
+                Mexican
+            </h6>
+        </div>
+    </div>
+    <!-- Veg -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food6.jpeg' %}"
+                    alt="Vegetarian Food"
+                >
+            </div>
+            <h6>
+                Veg Dishes
+            </h6>
+        </div>
+    </div>
+    <!-- South Indian -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food7.jpeg' %}"
+                    alt="South Indian Food"
+                >
+            </div>
+            <h6>
+                South Indian
+            </h6>
+        </div>
+    </div>
+    <!-- Desserts -->
+    <div class="col-4 col-sm-3 col-md-3">
+        <div class="category-card">
+            <div class="category-image">
+                <img
+                    src="{% static 'images/food8.jpeg' %}" 
+                    alt="Desserts"
+                >
+            </div>
+            <h6>
+                Desserts
+            </h6>
+        </div>
+    </div>
+</div>
+</section>
+
+<!-- =====================================================
+     PRODUCTS
+===================================================== -->
+<section class="home-section">
+<div class="section-heading">
+    <div>
+        <h2>
+            Popular Food
+        </h2>
+        <p>
+            Delicious dishes you might like
+        </p>
+    </div>
+</div>
+
+<div class="row g-4" id="productGrid">
+    {% for product in products %}
+    <div
+        class="col-12 col-sm-6 col-lg-4 col-xl-3 product-column"
+        data-product-name="{{ product.name|lower }}"
+    >
+        <div class="card product-card h-100">
+            <!-- IMAGE -->
+            <div class="product-image-wrapper">
+                {% if product.image %}
+                <img
+                    src="{{ product.image.url }}"
+                    class="product-card-image"
+                    alt="{{ product.name }}"
+                >
+                {% else %}
+                <div class="product-placeholder">
+                    <i class="bi bi-image"></i>
+                </div>
+                {% endif %}
+                {% if product.is_available %}
+                <span class="availability-badge">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Available
+                </span>
+                {% else %}
+                <span class="availability-badge unavailable">
+                    Unavailable
+                </span>
+                {% endif %}
+            </div>
+            <!-- CONTENT -->
+            <div class="card-body product-card-body">
+                <div class="product-title-row">
+                    <h5 class="product-name">
+                        {{ product.name }}
+                    </h5>
+                </div>
+                <!-- Fixed description area -->
+                <div class="product-description">
+                    {{ product.description|default:"Delicious and freshly prepared for you."|truncatewords:12 }}
+                </div>
+                <!-- Bottom area -->
+                <div class="product-bottom">
+                    <span class="product-price">
+                        ₹{{ product.price }}
+                    </span>
+                    {% if product.is_available %}
+                    <a
+                        href="{% url 'order_create' %}"
+                        class="btn btn-danger btn-sm add-food-btn">
+                        <i class="bi bi-plus-lg"></i>
+                        Add
+                    </a>
+                    {% else %}
+                    <button
+                        class="btn btn-secondary btn-sm"
+                        disabled>
+                        Unavailable
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-products">
+            <i class="bi bi-emoji-frown"></i>
+            <h4>
+                No food available
+            </h4>
+            <p>
+                Please check back later.
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- No search results -->
+<div
+    id="noSearchResults"
+    class="empty-products d-none">
+    <i class="bi bi-search"></i>
+    <h4>
+        No food found
+    </h4>
+    <p>
+        Try searching for something else.
+    </p>
+</div>
+</section>
+
+<!-- =====================================================
+     WHY CHOOSE US
+===================================================== -->
+<section class="why-section">
+
+<div class="text-center mb-5">
+    <h2>
+        WhyZomato?
+    </h2>
+    <p class="text-muted">
+        Simple, fast and delicious.
+    </p>
+</div>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="why-card">
+            <div class="why-icon">
+                <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+            <h5>
+                Fast Delivery
+            </h5>
+            <p>
+                Get your favourite food delivered quickly to your doorstep.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="why-card">
+            <div class="why-icon">
+                <i class="bi bi-heart-fill"></i>
+            </div>
+            <h5>
+                Fresh Food
+            </h5>
+            <p>
+                Enjoy freshly prepared meals from our food collection.
+            </p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="why-card">
+            <div class="why-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h5>
+                Easy Ordering
+            </h5>
+            <p>
+                Choose your food, place your order and track your delivery.
+            </p>
+        </div>
+    </div>
+</div>
+</section>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+$(document).ready(function () {
+    /*
+     * Product search
+     */
+    $("#productSearch").on("keyup", function () {
+        let searchText =
+            $(this).val().toLowerCase().trim();
+        let visibleProducts = 0;
+        $(".product-column").each(function () {
+            let productName =
+                $(this).data("product-name");
+            if (
+                productName.includes(searchText)
+                || searchText === ""
+            ) {
+                $(this).show();
+                visibleProducts++;
+            }
+            else {
+                $(this).hide();
+            }
+        });
+        /*
+         * Show message if nothing matches
+         */
+        if (visibleProducts === 0) {
+            $("#noSearchResults")
+                .removeClass("d-none");
+        }
+        else {
+            $("#noSearchResults")
+                .addClass("d-none");
+        }
+    });
+});
+</script>
+{% endblock %}

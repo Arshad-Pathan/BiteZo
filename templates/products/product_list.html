@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}
+Products
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="page-title">
+            Food Menu
+        </h2>
+        <p class="text-muted">
+            Browse available food items
+        </p>
+    </div>
+    <a href="{% url 'product_create' %}"
+       class="btn btn-danger">
+        <i class="bi bi-plus-circle"></i>
+        Add Food
+    </a>
+</div>
+<div class="row g-4">
+{% for product in products %}
+<div class="col-md-6 col-lg-4">
+    <div class="card food-card h-100 shadow-sm">
+        {% if product.image %}
+        <img src="{{ product.image.url }}"
+             class="card-img-top food-image">
+        {% else %}
+        <div class="bg-light food-image d-flex align-items-center justify-content-center">
+            <span class="display-4">
+                🍕
+            </span>
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h5 class="card-title">
+                {{ product.name }}
+            </h5>
+            <p class="text-muted">
+                {{ product.description|truncatewords:15 }}
+            </p>
+            <p class="price">
+                ₹{{ product.price }}
+            </p>
+            {% if product.is_available %}
+            <span class="badge bg-success">
+                Available
+            </span>
+            {% else %}
+            <span class="badge bg-secondary">
+                Unavailable
+            </span>
+            {% endif %}
+        </div>
+        <div class="card-footer bg-white border-0 pb-3">
+            <a href="{% url 'product_update' product.id %}"
+               class="btn btn-outline-primary btn-sm">
+                Edit
+            </a>
+            <a href="{% url 'product_delete' product.id %}"
+               class="btn btn-outline-danger btn-sm">
+                Delete
+            </a>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="col-12">
+    <div class="alert alert-info">
+        No products available.
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

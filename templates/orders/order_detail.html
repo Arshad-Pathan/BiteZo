@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-9">
+<!-- ORDER HEADER -->
+<div class="card shadow-sm border-0 mb-4">
+<div class="card-body p-4">
+<div class="d-flex justify-content-between">
+    <div>
+        <h3>
+            Order #{{ order.id }}
+        </h3>
+        <p class="text-muted mb-0">
+            {{ order.created_at|date:"d M Y, h:i A" }}
+        </p>
+    </div>
+    <div>
+        {% if order.payment_successful %}
+        <span class="badge bg-success fs-6">
+            Payment Successful
+        </span>
+        {% endif %}
+    </div>
+</div>
+<hr>
+<div class="row">
+    <div class="col-md-4">
+        <small class="text-muted">
+            Customer
+        </small>
+        <p class="fw-bold">
+            {{ order.customer.username }}
+        </p>
+    </div>
+    <div class="col-md-4">
+        <small class="text-muted">
+            Order Total
+        </small>
+        <p class="fw-bold text-danger">
+            ₹{{ order.total_price }}
+        </p>
+    </div>
+    <div class="col-md-4">
+        <small class="text-muted">
+            Current Status
+        </small>
+        <p class="fw-bold"
+           id="current-status">
+            {{ order.delivery_status }}
+        </p>
+    </div>
+</div>
+</div>
+</div>
+<!-- FOOD ITEMS -->
+<div class="card shadow-sm border-0 mb-4">
+<div class="card-body p-4">
+<h5 class="mb-3">
+    Order Items
+</h5>
+{% for item in order.items.all %}
+<div class="d-flex justify-content-between border-bottom py-3">
+    <div>
+        <strong>
+            {{ item.product.name }}
+        </strong>
+        <div class="text-muted">
+            ₹{{ item.product.price }}
+            ×
+            {{ item.quantity }}
+        </div>
+    </div>
+    <div class="fw-bold">
+        ₹{{ item.subtotal }}
+    </div>
+</div>
+{% endfor %}
+<div class="text-end mt-3">
+    <h5>
+        Total:
+        <span class="text-danger">
+            ₹{{ order.total_price }}
+        </span>
+    </h5>
+</div>
+</div>
+</div>
+<!-- DELIVERY TIMELINE -->
+<div class="card shadow-sm border-0">
+<div class="card-body p-4">
+<h5 class="mb-4">
+    Delivery Status
+</h5>
+<div class="row text-center align-items-start"
+     id="delivery-timeline">
+    <div class="col timeline-step"
+         data-step="0">
+        <div class="status-circle">
+            ✓
+        </div>
+        <small>
+            Order<br>Placed
+        </small>
+    </div>
+    <div class="col timeline-step"
+         data-step="1">
+        <div class="status-circle">
+            ✓
+        </div>
+        <small>
+            Confirmed
+        </small>
+    </div>
+    <div class="col timeline-step"
+         data-step="2">
+        <div class="status-circle">
+            ✓
+        </div>
+        <small>
+            Preparing
+        </small>
+    </div>
+    <div class="col timeline-step"
+         data-step="3">
+        <div class="status-circle">
+            ✓
+        </div>
+        <small>
+            Picked Up
+        </small>
+    </div>
+    <div class="col timeline-step"
+         data-step="4">
+        <div class="status-circle">
+            ✓
+        </div>
+        <small>
+            Out for<br>Delivery
+        </small>
+    </div>
+    <div class="col timeline-step"
+         data-step="5">
+        <div class="status-circle">
+            ✓
+        </div>
+        <small>
+            Delivered
+        </small>
+    </div>
+</div>
+<div class="mt-4">
+    <div class="progress"
+         style="height: 10px;">
+        <div id="delivery-progress"
+             class="progress-bar bg-success"
+             style="width: 0%">
+        </div>
+    </div>
+</div>
+<p class="text-muted text-center mt-3 mb-0">
+    Estimated delivery time:
+    <strong>
+        30 minutes
+    </strong>
+</p>
+</div>
+</div>
+<div class="mt-4">
+<a href="{% url 'order_list' %}"
+   class="btn btn-secondary">
+    Back to Orders
+</a>
+<a href="{% url 'order_update' order.id %}"
+   class="btn btn-outline-primary">
+    Edit
+</a>
+<a href="{% url 'order_delete' order.id %}"
+   class="btn btn-outline-danger">
+    Delete
+</a>
+</div>
+</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+$(document).ready(function () {
+    /*
+        Django gives us the exact time
+        when the order was created.
+    */
+    const createdAt = new Date(
+        "{{ order.created_at|date:'c' }}"
+    );
+    function updateDeliveryStatus() {
+        const now = new Date();
+        const elapsedMilliseconds =
+            now - createdAt;
+        const minutes =
+            elapsedMilliseconds / 60000;
+        let currentStep;
+        let status;
+        if (minutes < 5) {
+            currentStep = 0;
+            status = "Order Placed";
+        }
+        else if (minutes < 10) {
+            currentStep = 1;
+            status = "Confirmed";
+        }
+        else if (minutes < 15) {
+            currentStep = 2;
+            status = "Preparing";
+        }
+        else if (minutes < 20) {
+            currentStep = 3;
+            status = "Picked Up";
+        }
+        else if (minutes < 30) {
+            currentStep = 4;
+            status = "Out for Delivery";
+        }
+        else {
+            currentStep = 5;
+            status = "Delivered";
+        }
+        /*
+            Update status text
+        */
+        $("#current-status").text(status);
+        /*
+            Reset timeline
+        */
+        $(".status-circle")
+            .removeClass("active completed");
+        /*
+            Mark previous steps completed
+        */
+        $(".timeline-step").each(function () {
+            const step =
+                parseInt($(this).data("step"));
+            if (step < currentStep) {
+                $(this)
+                    .find(".status-circle")
+                    .addClass("completed");
+            }
+            else if (step === currentStep) {
+                $(this)
+                    .find(".status-circle")
+                    .addClass("active");
+            }
+        });
+        /*
+            Progress bar
+            Entire delivery = 30 minutes
+        */
+        let percentage =
+            (minutes / 30) * 100;
+        if (percentage > 100) {
+            percentage = 100;
+        }
+        $("#delivery-progress")
+            .css(
+                "width",
+                percentage + "%"
+            );
+        /*
+            Delivered means all circles green
+        */
+        if (minutes >= 30) {
+            $(".status-circle")
+                .removeClass("active")
+                .addClass("completed");
+        }
+    }
+    /*
+        Run immediately
+    */
+    updateDeliveryStatus();
+    /*
+        Then update every 5 seconds.
+        The STATUS itself still only changes
+        according to 5-minute intervals.
+    */
+    setInterval(
+        updateDeliveryStatus,
+        5000
+    );
+});
+</script>
+{% endblock %}
