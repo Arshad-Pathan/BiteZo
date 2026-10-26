@@ -30,9 +30,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-secure-p(s-hqeiw_&kh^41%@y#ok1s#2i5xbq82jtal)(_9%_3cofxz@9i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() in {"1", "true", "yes", "on"}
 
-ALLOWED_HOSTS = []
+# Vercel sends this hostname for the deployed application. Extra custom domains
+# can be supplied as a comma-separated ALLOWED_HOSTS environment variable.
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "zomato-mauve.vercel.app"]
+ALLOWED_HOSTS.extend(
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+)
+
+# Required for Django's CSRF protection when authenticated forms are posted
+# from the Vercel URL. Add any custom production domain through the matching
+# CSRF_TRUSTED_ORIGINS environment variable.
+CSRF_TRUSTED_ORIGINS = ["https://zomato-mauve.vercel.app"]
+CSRF_TRUSTED_ORIGINS.extend(
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+)
 
 # Kept out of the source URL configuration so deployments can set a private,
 # non-default administration path through the ADMIN_URL environment variable.
