@@ -20,15 +20,16 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from products.views import home
+from food_delivery import admin_security  # Configures the shared admin site.
 
 urlpatterns = [
 
     path(
-        "admin/",
+        settings.ADMIN_URL,
         admin.site.urls
     ),
     path("", include("django.contrib.auth.urls")),
-    path("", home, name="home"),
+    path("", home, name="home"),        #FOR BOTH USER & ADMIN
     path(
         "customers/",
         include("customers.urls")
@@ -36,7 +37,7 @@ urlpatterns = [
 
     path(
         "",
-        include("products.urls")
+        include("products.urls")        #FOR ONLY ADMIN
     ),
 
     path(
@@ -45,9 +46,7 @@ urlpatterns = [
     ),
 ]
 
-# ============================================================
 # DEVELOPMENT STATIC / MEDIA SERVING
-# ============================================================
 
 if settings.DEBUG:
 

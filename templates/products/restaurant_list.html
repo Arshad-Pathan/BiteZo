@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Restaurants | BiteZo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+    <div>
+        <p class="section-kicker mb-1">Choose a kitchen</p>
+        <h1 class="page-title mb-0">Restaurants</h1>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">Browse All Food</a>
+</div>
+<div class="row g-4">
+{% for restaurant in restaurants %}
+<div class="col-md-6 col-lg-4">
+    <article class="card h-100 shadow-sm border-0">
+        {% if restaurant.image %}
+        <img src="{{ restaurant.image.url }}" class="card-img-top food-image" alt="{{ restaurant.name }}" loading="lazy">
+        {% else %}
+        <div class="restaurant-hero-placeholder" style="min-height: 200px;"><i class="bi bi-shop"></i></div>
+        {% endif %}
+        <div class="card-body">
+            <h2 class="h4">{{ restaurant.name }}</h2>
+            <p class="text-muted">{{ restaurant.description|default:"Fresh food delivered to your door."|truncatewords:18 }}</p>
+            <small class="d-block mb-1"><i class="bi bi-star-fill text-warning"></i> {{ restaurant.rating_average|default:0|floatformat:1 }} ({{ restaurant.review_count }} review{{ restaurant.review_count|pluralize }})</small>
+            <small><i class="bi bi-clock"></i> {{ restaurant.delivery_time }} · {{ restaurant.menu_item_count }} menu item{{ restaurant.menu_item_count|pluralize }}</small>
+        </div>
+        <div class="card-footer bg-white border-0"><a href="{% url 'restaurant_detail' restaurant.id %}" class="btn btn-danger">View Restaurant</a></div>
+    </article>
+</div>
+{% empty %}
+<div class="col-12"><div class="alert alert-info">No restaurants are available yet.</div></div>
+{% endfor %}
+</div>
+{% endblock %}

@@ -2,33 +2,38 @@
 {% load static %}
 
 {% block title %}
-JHHAPETO
+BiteZo
 {% endblock %}
 {% block content %}
 
 <!-- =====================================================
      HERO / SEARCH SECTION
 ===================================================== -->
-<section class="home-hero">
+<section class="home-hero home-hero-animated">
+
+<span class="hero-orb hero-orb-one" aria-hidden="true"></span>
+<span class="hero-orb hero-orb-two" aria-hidden="true"></span>
 
 <div class="hero-content text-center">
-    <h1 class="hero-title">
+    <h1 class="hero-title hero-enter hero-enter-one">
         Delicious food,
         <span>delivered to you on time.</span>
     </h1>
-    <p class="hero-subtitle">
+    <p class="hero-subtitle hero-enter hero-enter-two">
         Discover your favourite food and order it in just a few clicks.
     </p>
     <!-- Search -->
-    <div class="home-search mx-auto">
+    <form method="get" class="home-search mx-auto hero-enter hero-enter-three">
         <i class="bi bi-search"></i>
         <input
             type="text"
             id="productSearch"
+            name="q"
+            value="{{ request.GET.q }}"
             class="form-control"
             placeholder="Search for pizza, burger, biryani..."
         >
-    </div>
+    </form>
 </div>
 
 </section>
@@ -37,7 +42,7 @@ JHHAPETO
 ===================================================== -->
 <section class="home-section">
 
-<div class="section-heading">
+<div class="section-heading section-heading-start">
     <div class="">
         <h2>
             Explore Categories
@@ -50,7 +55,7 @@ JHHAPETO
 <div class="row g-3">
     <!-- Pizza -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=pizza'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food1.jpeg' %}"
@@ -64,7 +69,7 @@ JHHAPETO
     </div>
     <!-- Burgers -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=burgers'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food2.jpeg' %}"
@@ -78,7 +83,7 @@ JHHAPETO
     </div>
     <!-- Biryani -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=biryani'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food3.jpeg' %}"
@@ -92,7 +97,7 @@ JHHAPETO
     </div>
     <!-- Chinese -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=chinese'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food4.jpeg' %}" 
@@ -106,7 +111,7 @@ JHHAPETO
     </div>
     <!-- Mexican -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=mexican'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food5.jpeg' %}" 
@@ -120,7 +125,7 @@ JHHAPETO
     </div>
     <!-- Veg -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=vegetarian'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food6.jpeg' %}"
@@ -134,7 +139,7 @@ JHHAPETO
     </div>
     <!-- South Indian -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=south-indian'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food7.jpeg' %}"
@@ -148,7 +153,7 @@ JHHAPETO
     </div>
     <!-- Desserts -->
     <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card">
+        <div class="category-card category-card-animated" onclick="window.location.href='?category=desserts'">
             <div class="category-image">
                 <img
                     src="{% static 'images/food8.jpeg' %}" 
@@ -167,7 +172,7 @@ JHHAPETO
      PRODUCTS
 ===================================================== -->
 <section class="home-section">
-<div class="section-heading">
+<div class="section-heading section-heading-start">
     <div>
         <h2>
             Popular Food
@@ -178,11 +183,20 @@ JHHAPETO
     </div>
 </div>
 
+<form method="get" class="catalog-filters row g-2 mb-4">
+    <div class="col-md-4"><input name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Food or restaurant"></div>
+    <div class="col-md-2"><select name="category" class="form-select"><option value="">All categories</option>{% for category in categories %}<option value="{{ category.slug }}" {% if request.GET.category == category.slug %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><select name="restaurant" class="form-select"><option value="">All restaurants</option>{% for restaurant in restaurants %}<option value="{{ restaurant.id }}" {% if request.GET.restaurant == restaurant.id|stringformat:'s' %}selected{% endif %}>{{ restaurant.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><select name="dietary_type" class="form-select"><option value="">All food types</option><option value="veg" {% if request.GET.dietary_type == 'veg' %}selected{% endif %}>Vegetarian</option><option value="non_veg" {% if request.GET.dietary_type == 'non_veg' %}selected{% endif %}>Non-vegetarian</option></select></div>
+    <div class="col-md-2"><select name="availability" class="form-select"><option value="available">Available</option><option value="">All availability</option><option value="unavailable" {% if request.GET.availability == 'unavailable' %}selected{% endif %}>Unavailable</option></select></div>
+    <div class="col-12"><button class="btn btn-danger">Apply Filters</button> <a href="{% url 'home' %}" class="btn btn-outline-secondary">Clear</a></div>
+</form>
+
 <div class="row g-4" id="productGrid">
     {% for product in products %}
     <div
         class="col-12 col-sm-6 col-lg-4 col-xl-3 product-column"
-        data-product-name="{{ product.name|lower }}"
+        data-product-name="{{ product.name|lower }} {{ product.restaurant|lower }}"
     >
         <div class="card product-card h-100">
             <!-- IMAGE -->
@@ -192,6 +206,8 @@ JHHAPETO
                     src="{{ product.image.url }}"
                     class="product-card-image"
                     alt="{{ product.name }}"
+                    loading="lazy"
+                    decoding="async"
                 >
                 {% else %}
                 <div class="product-placeholder">
@@ -212,10 +228,14 @@ JHHAPETO
             <!-- CONTENT -->
             <div class="card-body product-card-body">
                 <div class="product-title-row">
-                    <h5 class="product-name">
-                        {{ product.name }}
-                    </h5>
+                    <h5 class="product-name"><a href="{% url 'product_detail' product.id %}" class="text-dark">{{ product.name }}</a></h5>
                 </div>
+                {% if request.user.is_authenticated %}
+                <form method="post" action="{% url 'favorite_toggle' product.id %}" class="product-save mb-2">
+                    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="btn btn-link p-0 text-danger"><i class="bi {% if product.id in favorite_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i> {% if product.id in favorite_ids %}Saved{% else %}Save{% endif %}</button>
+                </form>
+                {% endif %}
                 <!-- Fixed description area -->
                 <div class="product-description">
                     {{ product.description|default:"Delicious and freshly prepared for you."|truncatewords:12 }}
@@ -226,12 +246,18 @@ JHHAPETO
                         ₹{{ product.price }}
                     </span>
                     {% if product.is_available %}
-                    <a
-                        href="{% url 'order_create' %}"
-                        class="btn btn-danger btn-sm add-food-btn">
-                        <i class="bi bi-plus-lg"></i>
-                        Add
-                    </a>
+                    <form method="post" action="{% url 'cart_add' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <div class="input-group input-group-sm mb-2" style="width: 120px;">
+                            <button type="button" class="btn btn-outline-secondary quantity-minus" aria-label="Decrease quantity">−</button>
+                            <input type="number" name="quantity" value="1" min="1" max="20" class="form-control text-center product-quantity" aria-label="Quantity for {{ product.name }}">
+                            <button type="button" class="btn btn-outline-secondary quantity-plus" aria-label="Increase quantity">+</button>
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-sm add-food-btn w-100">
+                            <i class="bi bi-plus-lg"></i> Add
+                        </button>
+                    </form>
                     {% else %}
                     <button
                         class="btn btn-secondary btn-sm"
@@ -272,14 +298,12 @@ JHHAPETO
 </div>
 </section>
 
-<!-- =====================================================
-     WHY CHOOSE US
-===================================================== -->
+<!-- WHY CHOOSE US -->
 <section class="why-section">
 
 <div class="text-center mb-5">
     <h2>
-        WhyZomato?
+        Why BiteZo?
     </h2>
     <p class="text-muted">
         Simple, fast and delicious.
@@ -366,6 +390,19 @@ $(document).ready(function () {
             $("#noSearchResults")
                 .addClass("d-none");
         }
+    });
+
+    $(document).on("click", ".quantity-minus, .quantity-plus", function () {
+        const input = $(this).siblings(".product-quantity");
+        let quantity = parseInt(input.val()) || 1;
+        quantity += $(this).hasClass("quantity-plus") ? 1 : -1;
+        input.val(Math.max(1, Math.min(20, quantity)));
+    });
+
+    $(document).on("submit", "form[action$='cart/add/']", function () {
+        $(this).find(".add-food-btn")
+            .addClass("add-success")
+            .html('<i class="bi bi-check-lg"></i> Added');
     });
 });
 </script>

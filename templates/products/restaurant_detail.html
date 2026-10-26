@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ restaurant.name }} | BiteZo{% endblock %}
+
+{% block content %}
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} mb-4">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<section class="restaurant-hero card border-0 shadow-sm mb-4">
+    <div class="row g-0 align-items-stretch">
+        <div class="col-lg-5">
+            {% if restaurant.image %}
+            <img src="{{ restaurant.image.url }}" class="restaurant-hero-image" alt="{{ restaurant.name }}">
+            {% else %}
+            <div class="restaurant-hero-placeholder"><i class="bi bi-shop"></i></div>
+            {% endif %}
+        </div>
+        <div class="col-lg-7">
+            <div class="card-body p-4 p-lg-5">
+                <a href="{% url 'restaurant_list' %}" class="restaurant-back"><i class="bi bi-arrow-left"></i> All restaurants</a>
+                <h1 class="mt-3 mb-2">{{ restaurant.name }}</h1>
+                <div class="restaurant-rating mb-3" aria-label="{{ rating_average|floatformat:1 }} out of 5 stars">
+                    <i class="bi bi-star-fill"></i>
+                    <strong>{{ rating_average|floatformat:1 }}</strong>
+                    <span>{{ review_count }} review{{ review_count|pluralize }}</span>
+                    <span class="restaurant-dot">•</span>
+                    <span>{{ restaurant.delivery_time }}</span>
+                </div>
+                <p class="lead text-muted mb-4">{{ restaurant.description|default:"Freshly prepared food, delivered with BiteZo." }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="#menu" class="btn btn-danger"><i class="bi bi-journal-text"></i> View Menu</a>
+                    {% if restaurant.phone %}
+                    <a href="tel:{{ restaurant.phone }}" class="btn btn-outline-secondary"><i class="bi bi-telephone"></i> Call Restaurant</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <section class="restaurant-section card mb-4" aria-labelledby="menu-heading">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <p class="section-kicker mb-1">Freshly prepared</p>
+                        <h2 id="menu-heading" class="h3 mb-0">Menu</h2>
+                    </div>
+                    <span class="menu-count">{{ products|length }} item{{ products|length|pluralize }}</span>
+                </div>
+                <div id="menu" class="restaurant-menu-list">
+                    {% for product in products %}
+                    <article class="restaurant-menu-item">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy" decoding="async">
+                        {% else %}
+                        <div class="restaurant-menu-placeholder"><i class="bi bi-egg-fried"></i></div>
+                        {% endif %}
+                        <div class="restaurant-menu-content">
+                            <div class="d-flex justify-content-between gap-3">
+                                <div>
+                                    <h3 class="h5 mb-1"><a href="{% url 'product_detail' product.id %}">{{ product.name }}</a></h3>
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        {% if product.category %}<span class="menu-pill">{{ product.category.name }}</span>{% endif %}
+                                        {% if product.dietary_type == "veg" %}<span class="menu-pill menu-pill-veg">Veg</span>{% endif %}
+                                        {% if product.dietary_type == "non_veg" %}<span class="menu-pill menu-pill-nonveg">Non-veg</span>{% endif %}
+                                    </div>
+                                </div>
+                                <strong class="menu-price">₹{{ product.price }}</strong>
+                            </div>
+                            <p class="text-muted mb-3">{{ product.description|default:"Freshly prepared for you."|truncatewords:20 }}</p>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-danger btn-sm">Details</a>
+                                <form method="post" action="{% url 'cart_add' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button class="btn btn-danger btn-sm"><i class="bi bi-plus-lg"></i> Add</button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                    {% empty %}
+                    <div class="alert alert-info mb-0">This restaurant does not have available menu items right now.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="restaurant-section card mb-4" aria-labelledby="reviews-heading">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+                    <div>
+                        <p class="section-kicker mb-1">Customer feedback</p>
+                        <h2 id="reviews-heading" class="h3 mb-0">Reviews</h2>
+                    </div>
+                    <div class="review-summary"><i class="bi bi-star-fill"></i> <strong>{{ rating_average|floatformat:1 }}</strong> / 5 from {{ review_count }} review{{ review_count|pluralize }}</div>
+                </div>
+
+                {% if request.user.is_authenticated %}
+                <form method="post" action="{% url 'restaurant_review' restaurant.id %}" class="review-form mb-4">
+                    {% csrf_token %}
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-4">
+                            <label for="rating" class="form-label">Your rating</label>
+                            <select id="rating" name="rating" class="form-select" required>
+                                <option value="">Choose rating</option>
+                                {% for value in "12345" %}
+                                <option value="{{ value }}" {% if user_review and user_review.rating|stringformat:"s" == value %}selected{% endif %}>{{ value }} star{{ value|pluralize }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-8">
+                            <label for="comment" class="form-label">Your review <span class="text-muted">(optional)</span></label>
+                            <textarea id="comment" name="comment" class="form-control" rows="2" maxlength="1000" placeholder="Tell other customers about your experience.">{{ user_review.comment|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger mt-3">{% if user_review %}Update Review{% else %}Post Review{% endif %}</button>
+                </form>
+                {% else %}
+                <div class="review-login mb-4"><i class="bi bi-chat-heart"></i> <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to rate and review this restaurant.</div>
+                {% endif %}
+
+                <div class="review-list">
+                    {% for review in reviews %}
+                    <article class="review-item">
+                        <div class="review-avatar">{{ review.user.username|first|upper }}</div>
+                        <div>
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                <span class="review-stars" aria-label="{{ review.rating }} out of 5 stars">
+                                    {% for value in "12345" %}{% if forloop.counter <= review.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}{% endfor %}
+                                </span>
+                                <small class="text-muted">{{ review.updated_at|date:"d M Y" }}</small>
+                            </div>
+                            {% if review.comment %}<p class="mb-0 mt-2">{{ review.comment|linebreaksbr }}</p>{% endif %}
+                        </div>
+                    </article>
+                    {% empty %}
+                    <p class="text-muted mb-0">No reviews yet. Be the first to share your experience.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <aside class="col-lg-4">
+        <section class="restaurant-section card mb-4">
+            <div class="card-body p-4">
+                <p class="section-kicker mb-1">Find us</p>
+                <h2 class="h4 mb-3">Restaurant Details</h2>
+                <div class="restaurant-detail-row"><i class="bi bi-geo-alt"></i><div><strong>Address</strong><p>{{ restaurant.address|default:"Address will be added soon."|linebreaksbr }}</p></div></div>
+                <div class="restaurant-detail-row"><i class="bi bi-telephone"></i><div><strong>Mobile number</strong><p>{% if restaurant.phone %}<a href="tel:{{ restaurant.phone }}">{{ restaurant.phone }}</a>{% else %}Not available{% endif %}</p></div></div>
+                <div class="restaurant-detail-row"><i class="bi bi-clock"></i><div><strong>Open hours</strong><p>{% if restaurant.opening_time and restaurant.closing_time %}{{ restaurant.opening_time|time:"g:i A" }} – {{ restaurant.closing_time|time:"g:i A" }}{% else %}Hours will be added soon.{% endif %}</p></div></div>
+            </div>
+        </section>
+
+        <section class="restaurant-section card mb-4">
+            <div class="card-body p-4">
+                <p class="section-kicker mb-1">Save more</p>
+                <h2 class="h4 mb-3">Available Offers</h2>
+                {% for offer in offers %}
+                <article class="offer-card">
+                    <i class="bi bi-ticket-perforated-fill"></i>
+                    <div><strong>{{ offer.title }}</strong><p>{{ offer.description|default:offer.terms }}</p>{% if offer.code %}<code>{{ offer.code }}</code>{% endif %}{% if offer.valid_until %}<small>Valid until {{ offer.valid_until|date:"d M Y" }}</small>{% endif %}</div>
+                </article>
+                {% empty %}
+                <p class="text-muted mb-0">No offers are available at the moment.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="restaurant-section card">
+            <div class="card-body p-4">
+                <p class="section-kicker mb-1">A look inside</p>
+                <h2 class="h4 mb-3">Photos</h2>
+                <div class="restaurant-gallery">
+                    {% if restaurant.image %}<img src="{{ restaurant.image.url }}" alt="{{ restaurant.name }}" loading="lazy">{% endif %}
+                    {% for photo in photos %}<img src="{{ photo.image.url }}" alt="{{ photo.caption|default:restaurant.name }}" loading="lazy">{% endfor %}
+                    {% if not restaurant.image and not photos %}<p class="text-muted mb-0">Photos will be added soon.</p>{% endif %}
+                </div>
+            </div>
+        </section>
+    </aside>
+</div>
+{% endblock %}

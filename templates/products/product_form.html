@@ -16,11 +16,29 @@
                 <label class="form-label">
                     Restaurant
                 </label>
-                <input type="text"
-                       name="restaurant"
-                       class="form-control"
-                       value="{{ product.restaurant|default:'' }}"
-                       required>
+                <select name="restaurant_ref" class="form-select" required>
+                    <option value="">Select Restaurant</option>
+                    {% for restaurant in restaurants %}
+                    <option value="{{ restaurant.id }}" {% if product.restaurant_ref_id == restaurant.id %}selected{% endif %}>{{ restaurant.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select" required>
+                    <option value="">Select Category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if product.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Food type</label>
+                <select name="dietary_type" class="form-select" required>
+                    {% for value, label in dietary_choices %}
+                    <option value="{{ value }}" {% if product.dietary_type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="mb-3">
                 <label class="form-label">

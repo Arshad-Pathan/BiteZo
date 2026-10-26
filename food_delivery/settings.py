@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 import mimetypes
 
@@ -32,6 +33,10 @@ SECRET_KEY = 'django-secure-p(s-hqeiw_&kh^41%@y#ok1s#2i5xbq82jtal)(_9%_3cofxz@9i
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+# Kept out of the source URL configuration so deployments can set a private,
+# non-default administration path through the ADMIN_URL environment variable.
+ADMIN_URL = os.environ.get("ADMIN_URL", "staff-portal/")
 
 
 # Application definition
@@ -168,11 +173,19 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# Browser and session protections. Secure cookies activate automatically when
+# DEBUG is disabled for a production HTTPS deployment.
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "same-origin"
+
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="page-title">Your Cart</h2><p class="text-muted mb-0">Review your selected food items.</p></div>
+    <a href="{% url 'home' %}" class="btn btn-outline-danger"><i class="bi bi-plus-lg"></i> Add Another Item</a>
+</div>
+{% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags|default:'danger' }}">{{ message }}</div>{% endfor %}{% endif %}
+
+{% if items %}
+<div class="row g-4">
+    <div class="col-lg-7"><div class="card shadow-sm border-0"><div class="card-body p-4">
+        {% for item in items %}
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 border-bottom py-3">
+            <div><h5 class="mb-1">{{ item.product.name }}</h5><span class="text-muted">₹{{ item.product.price }} each</span></div>
+            <form method="post" action="{% url 'cart_update' %}" class="d-flex align-items-center gap-2">
+                {% csrf_token %}<input type="hidden" name="product_id" value="{{ item.product.id }}">
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="form-control" style="width: 80px;" aria-label="Quantity for {{ item.product.name }}">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Update</button>
+                <button type="submit" name="remove" value="1" class="btn btn-outline-danger btn-sm">Remove</button>
+            </form>
+            <strong class="text-danger">₹{{ item.subtotal }}</strong>
+        </div>
+        {% endfor %}
+        <form method="post" action="{% url 'cart_clear' %}" class="pt-4">{% csrf_token %}<button class="btn btn-outline-danger btn-sm">Clear Cart</button></form>
+    </div></div></div>
+    <div class="col-lg-5"><div class="card shadow-sm border-0"><div class="card-body p-4">
+        <h4 class="mb-3">Checkout</h4>
+        <div class="d-flex justify-content-between mb-2"><span>Item total</span><strong>₹{{ subtotal }}</strong></div>
+        <div class="d-flex justify-content-between mb-2"><span>Delivery fee</span><strong>{% if delivery_fee %}₹{{ delivery_fee }}{% else %}FREE{% endif %}</strong></div>
+        <small class="text-muted d-block mb-3">Free delivery on orders of ₹499 or more.</small><hr>
+        <div class="d-flex justify-content-between mb-4"><h5>Grand total</h5><h5 class="text-danger">₹{{ grand_total }}</h5></div>
+        {% if request.user.is_authenticated %}
+            {% if addresses %}
+            <form method="post" action="{% url 'cart_checkout' %}">
+                {% csrf_token %}<h6 class="mb-3">Delivery address</h6>
+                {% for address in addresses %}
+                <label class="border rounded p-3 d-block mb-2" for="address-{{ address.id }}">
+                    <input class="form-check-input me-2" type="radio" name="delivery_address" id="address-{{ address.id }}" value="{{ address.id }}" {% if address.is_default %}checked{% endif %} required>
+                    <strong>{{ address.label }}</strong>{% if address.is_default %} <span class="badge bg-success">Default</span>{% endif %}
+                    <span class="d-block small text-muted ms-4">{{ address.recipient_name }}, {{ address.address_line }}, {{ address.city }} - {{ address.postal_code }}</span>
+                </label>
+                {% endfor %}
+                <a href="{% url 'address_create' %}?next=cart" class="btn btn-outline-secondary btn-sm mb-3">Add New Address</a>
+                <button type="submit" class="btn btn-danger w-100">Place Order</button>
+            </form>
+            {% else %}
+            <p class="text-muted">Add a delivery address before placing your order.</p><a href="{% url 'address_create' %}?next=cart" class="btn btn-danger w-100">Add Delivery Address</a>
+            {% endif %}
+        {% else %}
+        <p class="text-muted">Please sign in to select a delivery address and place your order.</p><a href="{% url 'login' %}?next={% url 'cart_detail' %}" class="btn btn-danger w-100">Login to Checkout</a>
+        {% endif %}
+    </div></div></div>
+</div>
+{% else %}
+<div class="alert alert-info">Your cart is empty. Choose food from the menu to get started.</div>
+{% endif %}
+{% endblock %}

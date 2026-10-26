@@ -9,6 +9,19 @@ class Order(models.Model):
         User,
         on_delete=models.CASCADE
     )
+    delivery_address = models.ForeignKey(
+        "customers.DeliveryAddress",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
+    delivery_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    delivery_address_snapshot = models.TextField(blank=True)
     created_at = models.DateTimeField(
         auto_now_add=True
     )
@@ -20,11 +33,15 @@ class Order(models.Model):
         return f"Order #{self.id}"
 
     @property
-    def total_price(self):
+    def items_total(self):
         total = 0
         for item in self.items.all():
-            total += item.product.price * item.quantity
+            total += item.subtotal
         return total
+
+    @property
+    def total_price(self):
+        return self.items_total + self.delivery_fee
 
     @property
     def delivery_status(self):
@@ -78,7 +95,12 @@ class OrderItem(models.Model):
     )
     product = models.ForeignKey(
         Product,
-        on_delete=models.CASCADE
+        on_delete=models.PROTECT
+    )
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
     )
     quantity = models.PositiveIntegerField(
         default=1
@@ -89,4 +111,4 @@ class OrderItem(models.Model):
 
     @property
     def subtotal(self):
-        return self.product.price * self.quantity
+        return self.unit_price * self.quantity

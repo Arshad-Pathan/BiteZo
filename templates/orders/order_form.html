@@ -25,7 +25,8 @@
                     Select Food
                 </option>
                 {% for product in products %}
-                <option value="{{ product.id }}">
+                <option value="{{ product.id }}"
+                        {% if selected_product and product.id == selected_product.id %}selected{% endif %}>
                     {{ product.name }}
                     - ₹{{ product.price }}
                 </option>

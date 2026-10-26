@@ -50,6 +50,11 @@
         </p>
     </div>
 </div>
+{% if order.delivery_address_snapshot %}
+<hr>
+<small class="text-muted">Delivery Address</small>
+<div class="fw-bold">{{ order.delivery_address_snapshot|linebreaksbr }}</div>
+{% endif %}
 </div>
 </div>
 <!-- FOOD ITEMS -->
@@ -65,7 +70,7 @@
             {{ item.product.name }}
         </strong>
         <div class="text-muted">
-            ₹{{ item.product.price }}
+            ₹{{ item.unit_price }}
             ×
             {{ item.quantity }}
         </div>
