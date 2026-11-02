@@ -11,6 +11,22 @@ from food_delivery.decorator import *
 
 
 def home(request):
+    active_tab = request.GET.get("tab", "delivery")
+    if active_tab != "gharkakhana":
+        active_tab = "delivery"
+
+    context = {"active_tab": active_tab}
+
+    if active_tab == "gharkakhana":
+        context["cloud_kitchens"] = Restaurant.objects.filter(
+            is_active=True, is_cloud_kitchen=True
+        ).annotate(
+            menu_item_count=Count("products", filter=Q(products__is_available=True)),
+            rating_average=Avg("reviews__rating"),
+            review_count=Count("reviews", distinct=True),
+        )
+        return render(request, "home.html", context)
+
     products = Product.objects.select_related("restaurant_ref", "category").all()
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "")
@@ -40,12 +56,13 @@ def home(request):
         favorite_ids = set(
             Favorite.objects.filter(user=request.user).values_list("product_id", flat=True)
         )
-    return render(request, "home.html", {
+    context.update({
         "products": products,
         "categories": Category.objects.all(),
         "restaurants": Restaurant.objects.filter(is_active=True),
         "favorite_ids": favorite_ids,
     })
+    return render(request, "home.html", context)
 
 
 def restaurant_list(request):

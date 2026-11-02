@@ -16,9 +16,9 @@ Including another URLconf
 """
 
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 from products.views import home
 from food_delivery import admin_security  # Configures the shared admin site.
 
@@ -46,16 +46,13 @@ urlpatterns = [
     ),
 ]
 
-# DEVELOPMENT STATIC / MEDIA SERVING
-
-if settings.DEBUG:
-
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT,
-    )
-
-    urlpatterns += static(
-        settings.STATIC_URL,
-        document_root=settings.STATIC_ROOT,
-    )
+# django.conf.urls.static.static() is a no-op when DEBUG is False, which is
+# the project default. Serve uploaded media explicitly so product and
+# restaurant images load under runserver without a DEBUG=True environment.
+urlpatterns += [
+    re_path(
+        r"^media/(?P<path>.*)$",
+        serve,
+        {"document_root": settings.MEDIA_ROOT},
+    ),
+]

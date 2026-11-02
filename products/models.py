@@ -13,6 +13,11 @@ class Restaurant(models.Model):
     opening_time = models.TimeField(null=True, blank=True)
     closing_time = models.TimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_cloud_kitchen = models.BooleanField(
+        default=False,
+        verbose_name="cloud kitchen",
+        help_text="Show this kitchen on the GharKaKhana tab.",
+    )
 
     def __str__(self):
         return self.name
@@ -21,6 +26,13 @@ class Restaurant(models.Model):
     def average_rating(self):
         ratings = self.reviews.aggregate(average=models.Avg("rating"))
         return ratings["average"] or 0
+
+
+class CloudKitchen(Restaurant):
+    class Meta:
+        proxy = True
+        verbose_name = "cloud kitchen"
+        verbose_name_plural = "cloud kitchens"
 
 
 class RestaurantPhoto(models.Model):
@@ -83,6 +95,7 @@ class RestaurantReview(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=80, unique=True)
     slug = models.SlugField(unique=True)
+    image = models.ImageField(upload_to="categories/", blank=True, null=True)
 
     class Meta:
         ordering = ["name"]

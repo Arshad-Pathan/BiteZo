@@ -1,10 +1,61 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block title %}
 BiteZo
 {% endblock %}
 {% block content %}
+
+<nav class="home-mode-tabs" aria-label="Order mode">
+    <a href="{% url 'home' %}" class="home-mode-tab {% if active_tab != 'gharkakhana' %}is-active{% endif %}">
+        <span class="home-mode-icon delivery"><i class="bi bi-scooter"></i></span>
+        Delivery
+    </a>
+    <a href="{% url 'home' %}?tab=gharkakhana" class="home-mode-tab {% if active_tab == 'gharkakhana' %}is-active{% endif %}">
+        <span class="home-mode-icon ghar"><i class="bi bi-house-heart"></i></span>
+        GharKaKhana
+    </a>
+</nav>
+
+{% if active_tab == "gharkakhana" %}
+<section class="home-section">
+    <div class="section-heading section-heading-start">
+        <div>
+            <h2>GharKaKhana</h2>
+            <p>Home-style meals from available cloud kitchens.</p>
+        </div>
+    </div>
+    <div class="row g-4">
+        {% for kitchen in cloud_kitchens %}
+        <div class="col-md-6 col-lg-4">
+            <article class="card h-100 shadow-sm border-0">
+                {% if kitchen.image %}
+                <img src="{{ kitchen.image.url }}" class="card-img-top food-image" alt="{{ kitchen.name }}" loading="lazy">
+                {% else %}
+                <div class="restaurant-hero-placeholder" style="min-height: 200px;"><i class="bi bi-house-heart"></i></div>
+                {% endif %}
+                <div class="card-body">
+                    <h2 class="h4">{{ kitchen.name }}</h2>
+                    <p class="text-muted">{{ kitchen.description|default:"Home-style food from a cloud kitchen."|truncatewords:18 }}</p>
+                    <small class="d-block mb-1"><i class="bi bi-star-fill text-warning"></i> {{ kitchen.rating_average|default:0|floatformat:1 }} ({{ kitchen.review_count }} review{{ kitchen.review_count|pluralize }})</small>
+                    <small><i class="bi bi-clock"></i> {{ kitchen.delivery_time }} · {{ kitchen.menu_item_count }} menu item{{ kitchen.menu_item_count|pluralize }}</small>
+                </div>
+                <div class="card-footer bg-white border-0">
+                    <a href="{% url 'restaurant_detail' kitchen.id %}" class="btn btn-danger">View Kitchen</a>
+                </div>
+            </article>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-products">
+                <i class="bi bi-house-heart"></i>
+                <h4>No cloud kitchens available</h4>
+                <p>Mark a restaurant as a cloud kitchen in admin to show it here.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% else %}
 
 <!-- =====================================================
      HERO / SEARCH SECTION
@@ -52,119 +103,29 @@ BiteZo
         </p>
     </div>
 </div>
-<div class="row g-3">
-    <!-- Pizza -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=pizza'">
+<div class="category-slider-wrap">
+    <button type="button" class="category-slider-btn prev" aria-label="Previous categories">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+    <div class="category-slider" id="categorySlider">
+        {% for category in categories %}
+        <a class="category-card category-card-animated" href="?category={{ category.slug }}">
             <div class="category-image">
-                <img
-                    src="{% static 'images/food1.jpeg' %}"
-                    alt="Pizzas"
-                >
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                {% else %}
+                <i class="bi bi-egg-fried"></i>
+                {% endif %}
             </div>
-            <h6>
-                Pizzas
-            </h6>
-        </div>
+            <h6>{{ category.name }}</h6>
+        </a>
+        {% empty %}
+        <p class="text-muted mb-0">No categories yet.</p>
+        {% endfor %}
     </div>
-    <!-- Burgers -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=burgers'">
-            <div class="category-image">
-                <img
-                    src="{% static 'images/food2.jpeg' %}"
-                    alt="Burgers"
-                >
-            </div>
-            <h6>
-                Burgers
-            </h6>
-        </div>
-    </div>
-    <!-- Biryani -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=biryani'">
-            <div class="category-image">
-                <img
-                    src="{% static 'images/food3.jpeg' %}"
-                    alt="Biryani"
-                >
-            </div>
-            <h6>
-                Biryanis
-            </h6>
-        </div>
-    </div>
-    <!-- Chinese -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=chinese'">
-            <div class="category-image">
-                <img
-                    src="{% static 'images/food4.jpeg' %}" 
-                    alt="Chinese Food"
-                >
-            </div>
-            <h6>
-                Chinese
-            </h6>
-        </div>
-    </div>
-    <!-- Mexican -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=mexican'">
-            <div class="category-image">
-                <img
-                    src="{% static 'images/food5.jpeg' %}" 
-                    alt="Mexican Food"
-                >
-            </div>
-            <h6>
-                Mexican
-            </h6>
-        </div>
-    </div>
-    <!-- Veg -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=vegetarian'">
-            <div class="category-image">
-                <img
-                    src="{% static 'images/food6.jpeg' %}"
-                    alt="Vegetarian Food"
-                >
-            </div>
-            <h6>
-                Veg Dishes
-            </h6>
-        </div>
-    </div>
-    <!-- South Indian -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=south-indian'">
-            <div class="category-image">
-                <img
-                    src="{% static 'images/food7.jpeg' %}"
-                    alt="South Indian Food"
-                >
-            </div>
-            <h6>
-                South Indian
-            </h6>
-        </div>
-    </div>
-    <!-- Desserts -->
-    <div class="col-4 col-sm-3 col-md-3">
-        <div class="category-card category-card-animated" onclick="window.location.href='?category=desserts'">
-            <div class="category-image">
-                <img
-                    src="{% static 'images/food8.jpeg' %}" 
-                    alt="Desserts"
-                >
-            </div>
-            <h6>
-                Desserts
-            </h6>
-        </div>
-    </div>
+    <button type="button" class="category-slider-btn next" aria-label="Next categories">
+        <i class="bi bi-chevron-right"></i>
+    </button>
 </div>
 </section>
 
@@ -297,6 +258,7 @@ BiteZo
     </p>
 </div>
 </section>
+{% endif %}
 
 <!-- WHY CHOOSE US -->
 <section class="why-section">
@@ -403,6 +365,15 @@ $(document).ready(function () {
         $(this).find(".add-food-btn")
             .addClass("add-success")
             .html('<i class="bi bi-check-lg"></i> Added');
+    });
+
+    $(".category-slider-btn").on("click", function () {
+        const slider = document.getElementById("categorySlider");
+        const amount = slider.clientWidth * 0.7;
+        slider.scrollBy({
+            left: $(this).hasClass("next") ? amount : -amount,
+            behavior: "smooth"
+        });
     });
 });
 </script>

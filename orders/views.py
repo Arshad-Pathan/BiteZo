@@ -22,6 +22,36 @@ def _cart(request):
     return request.session.get("cart", {})
 
 
+def _source_key(product):
+    if product.restaurant_ref_id:
+        return f"place:{product.restaurant_ref_id}"
+    name = (product.restaurant or "").strip().lower()
+    return f"name:{name}" if name else f"item:{product.id}"
+
+
+def _source_label(product):
+    kitchen = product.restaurant_ref
+    if kitchen:
+        if kitchen.is_cloud_kitchen:
+            chef = kitchen.chef_name or kitchen.name
+            return f"{kitchen.name} by {chef}" if kitchen.chef_name else kitchen.name
+        return kitchen.name
+    return product.restaurant or product.name
+
+
+def _cart_source_conflict(cart, product):
+    if not cart:
+        return None
+    existing = (
+        Product.objects.filter(id__in=cart.keys())
+        .select_related("restaurant_ref")
+        .first()
+    )
+    if existing and _source_key(existing) != _source_key(product):
+        return existing
+    return None
+
+
 def _save_cart(request, cart):
     request.session["cart"] = cart
     request.session["cart_count"] = sum(cart.values())
@@ -30,14 +60,19 @@ def _save_cart(request, cart):
 
 def cart_detail(request):
     cart = _cart(request)
-    products = Product.objects.filter(id__in=cart.keys(), is_available=True)
+    products = Product.objects.filter(id__in=cart.keys(), is_available=True).select_related(
+        "restaurant_ref"
+    )
     items = []
     total = Decimal("0.00")
+    cart_source = ""
     for product in products:
         quantity = cart[str(product.id)]
         subtotal = product.price * quantity
         items.append({"product": product, "quantity": quantity, "subtotal": subtotal})
         total += subtotal
+        if not cart_source:
+            cart_source = _source_label(product)
 
     delivery_fee = 0 if total >= FREE_DELIVERY_THRESHOLD else DELIVERY_FEE
     addresses = []
@@ -54,6 +89,7 @@ def cart_detail(request):
         "delivery_fee": delivery_fee,
         "grand_total": total + delivery_fee,
         "addresses": addresses,
+        "cart_source": cart_source,
     })
 
 
@@ -62,7 +98,9 @@ def cart_add(request):
         return redirect("home")
 
     product = get_object_or_404(
-        Product, id=request.POST.get("product_id"), is_available=True
+        Product.objects.select_related("restaurant_ref"),
+        id=request.POST.get("product_id"),
+        is_available=True,
     )
     try:
         quantity = int(request.POST.get("quantity", 1))
@@ -71,6 +109,15 @@ def cart_add(request):
     quantity = max(1, min(quantity, 20))
 
     cart = _cart(request)
+    conflict = _cart_source_conflict(cart, product)
+    if conflict:
+        messages.error(
+            request,
+            f"This cart only accepts items from {_source_label(conflict)}. "
+            f"Place that order or clear the cart before adding food from {_source_label(product)}.",
+        )
+        return redirect("cart_detail")
+
     product_id = str(product.id)
     cart[product_id] = min(cart.get(product_id, 0) + quantity, 20)
     _save_cart(request, cart)
@@ -111,8 +158,18 @@ def cart_checkout(request):
         return redirect("cart_detail")
 
     cart = _cart(request)
-    products = Product.objects.filter(id__in=cart.keys(), is_available=True)
+    products = Product.objects.filter(id__in=cart.keys(), is_available=True).select_related(
+        "restaurant_ref"
+    )
     if not products:
+        return redirect("cart_detail")
+    sources = {_source_key(product) for product in products}
+    if len(sources) > 1:
+        messages.error(
+            request,
+            "A cart can only contain items from one restaurant or kitchen. "
+            "Remove extra items or clear the cart, then order separately.",
+        )
         return redirect("cart_detail")
 
     customer, _ = Customer.objects.get_or_create(
